@@ -39,8 +39,16 @@ public class SanPham {
     @Column(name = "trangthai", length = 30, nullable = false)
     private String trangThai = "Còn hàng";
 
+    @ManyToOne
+    @JoinColumn(name = "madm", insertable = false, updatable = false)
+    private DanhMucSP danhMuc;
+
     @Column(name = "madm", nullable = false)
     private int maDM;
+
+    @ManyToOne // quan hệ nhiều-một
+    @JoinColumn(name = "mancc", insertable = false, updatable = false)
+    private NhaCungCap nhaCungCap;
 
     @Column(name = "mancc", nullable = false)
     private int maNCC;

@@ -291,7 +291,6 @@ export type Product = SanPham & {
   description?: string; // Alias cho MoTa
   rating?: number; // Alias cho DanhGiaTrungBinh
   reviewCount?: number; // Alias cho SoLuotDanhGia
-  sku?: string; // Mã SKU giả lập cho sản phẩm (frontend dùng để hiển thị / lọc)
   createdAt?: string; // Thời điểm giả lập tạo sản phẩm (phục vụ sắp xếp newest)
   selectedColor?: string; // Màu đã chọn khi thêm vào giỏ hàng
   

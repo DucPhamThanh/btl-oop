@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../../services/api";
 import {
   ArrowRight,
   ShoppingBag,
@@ -14,7 +16,7 @@ import {
   Tag,
 } from "lucide-react";
 import type { Product } from "../../types";
-// import { ProductCard } from '../../components/common/ProductCard';
+import { ProductCard } from "../../components/common/ProductCard";
 // import { NewsletterSection } from '../../components/common/NewsletterSection';
 
 interface HomePageProps {
@@ -81,6 +83,7 @@ const bannerSlides: BannerSlide[] = [
 ];
 
 export const HomePage: React.FC<HomePageProps> = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
@@ -89,23 +92,26 @@ export const HomePage: React.FC<HomePageProps> = () => {
   const [newProducts, setNewProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  let skeletons = [];
   // Fetch Data
   useEffect(() => {
-    fetch("/api/home")
-      .then((res) => {
-        if (!res.ok) throw new Error("Lỗi kết nối");
-        return res.json();
-      })
+    api
+      .getHomeData()
       .then((data) => {
         setFeaturedProducts(data.topRatedProducts || []);
-        setNewProducts(data.latestProducts || []);
+        setNewProducts(data.newProducts || []);
       })
-      .catch((err) => console.error("Lỗi khi tải trang chủ:", err))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error("Lỗi khi tải dữ liệu trang chủ:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const onViewProduct = (product: Product) => {
-    alert(`Đang xem sản phẩm: ${product.name || product.TenSP}`);
+    const productId = product.id || product.MaSP;
+    navigate(`/product/${productId}`);
   };
 
   const onCategorySelect = (category: string) => {
@@ -123,7 +129,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
     return () => clearInterval(interval);
   }, [isAutoPlay]);
 
-  if (loading) {
+  if (loading === true) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-xl font-semibold text-blue-600">
@@ -172,9 +178,9 @@ export const HomePage: React.FC<HomePageProps> = () => {
               <div className="grid md:grid-cols-2 gap-8 items-center h-full">
                 {/* Left Content */}
                 <div className="space-y-6 text-white z-20">
-                  <div className="inline-block px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-full text-sm font-medium">
+                  <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
                     <Sparkles className="inline h-4 w-4 mr-2" />
-                    Ưu đãi đặc biệt
+                    <span className="">Ưu đãi đặc biệt</span>
                   </div>
 
                   <h1 className="text-5xl md:text-7xl font-bold leading-tight">
@@ -251,7 +257,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white bg-opacity-30 hover:bg-opacity-50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-opacity-50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
           aria-label="Previous slide"
         >
           <ChevronLeft className="h-6 w-6" />
@@ -259,7 +265,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
 
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white bg-opacity-30 hover:bg-opacity-50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-opacity-50 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
           aria-label="Next slide"
         >
           <ChevronRight className="h-6 w-6" />
@@ -350,7 +356,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             className="group p-8 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-2xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-colors">
+              <div className="p-4 bg-white bg-white/20 rounded-full group-hover:bg-opacity-30 transition-colors">
                 <Smartphone className="h-12 w-12" />
               </div>
               <h3 className="text-2xl font-bold">Điện thoại</h3>
@@ -366,7 +372,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             className="group p-8 bg-gradient-to-br from-cyan-500 to-teal-500 text-white rounded-2xl hover:from-cyan-600 hover:to-teal-600 transition-all duration-300 transform hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-colors">
+              <div className="p-4 bg-white bg-white/20 rounded-full group-hover:bg-opacity-30 transition-colors">
                 <Laptop className="h-12 w-12" />
               </div>
               <h3 className="text-2xl font-bold">Laptop</h3>
@@ -382,7 +388,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             className="group p-8 bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl hover:from-indigo-600 hover:to-blue-700 transition-all duration-300 transform hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-colors">
+              <div className="p-4 bg-white bg-white/20 rounded-full group-hover:bg-opacity-30 transition-colors">
                 <div className="flex items-center space-x-1">
                   <Smartphone className="h-6 w-6" />
                   <Laptop className="h-6 w-6" />
@@ -401,7 +407,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             className="group p-8 bg-gradient-to-br from-teal-500 to-cyan-600 text-white rounded-2xl hover:from-teal-600 hover:to-cyan-700 transition-all duration-300 transform hover:-translate-y-1"
           >
             <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-colors">
+              <div className="p-4 bg-white bg-white/20 rounded-full group-hover:bg-opacity-30 transition-colors">
                 <Headphones className="h-12 w-12" />
               </div>
               <h3 className="text-2xl font-bold">Phụ kiện</h3>
@@ -434,13 +440,13 @@ export const HomePage: React.FC<HomePageProps> = () => {
           </button>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* {featuredProducts.slice(0, 4).map((product) => (
+          {featuredProducts.slice(0, 4).map((product) => (
             <ProductCard
               key={product.id}
               product={product}
               onViewDetails={onViewProduct}
             />
-          ))} */}
+          ))}
         </div>
       </section>
 
@@ -457,22 +463,15 @@ export const HomePage: React.FC<HomePageProps> = () => {
                 Cập nhật những sản phẩm công nghệ mới nhất
               </p>
             </div>
-            <button
-              onClick={() => onCategorySelect("new")}
-              className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
-            >
-              <span>Xem tất cả</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* {newProducts.slice(0, 4).map((product) => (
+            {newProducts.slice(0, 4).map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onViewDetails={onViewProduct}
               />
-            ))} */}
+            ))}
           </div>
         </section>
       )}

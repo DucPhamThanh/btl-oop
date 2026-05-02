@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
-    // Sử dụng nativeQuery
+    // Sử dụng nativeQuery cho truy vấn sql
     @Query(value = "SELECT * FROM SanPham WHERE TrangThai = ?1 ORDER BY MaSP DESC LIMIT 10", nativeQuery = true)
     List<SanPham> getLatestProducts(String trangThai);
 

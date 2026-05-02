@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.techstore.techstore.repository.NguoiDungRepository;
 import com.techstore.techstore.model.NguoiDung;
 import com.techstore.techstore.dto.request.AuthenticationRequest;
+import com.techstore.techstore.dto.request.LogoutRequest;
 
 import lombok.experimental.FieldDefaults;
 
@@ -49,15 +50,15 @@ public class AuthService {
     @Value("${jwt.secret}")
     protected String signerKey;
 
-    private String generateToken(String email) {
-
+    private String generateToken(NguoiDung user) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimSet = new JWTClaimsSet.Builder()
-                .subject(email)
+                .subject(user.getEmail())
                 .issuer("techstore.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
+                .claim("scope", user.getMaVaiTro()) // Đưa role vào claim 'scope' ném cho Spring Security xử lí
                 .build();
 
         Payload payload = new Payload(jwtClaimSet.toJSONObject());
@@ -67,7 +68,7 @@ public class AuthService {
             jwsObject.sign(new MACSigner(signerKey.getBytes()));
             return jwsObject.serialize();
         } catch (Exception e) {
-            log.error("Login error", e);
+            log.error("Generate token error", e);
             return null;
         }
     }
@@ -77,11 +78,8 @@ public class AuthService {
 
         try {
             JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
-
             SignedJWT signedJWT = SignedJWT.parse(token);
-
             Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-
             var verified = signedJWT.verify(verifier);
 
             return ApiResponse.<IntrospectResponse>builder()
@@ -100,27 +98,31 @@ public class AuthService {
         }
     }
 
+    public void logout(LogoutRequest request) {
+        log.info("User requested logout");
+    }
+
     public ApiResponse<AuthenticationResponse> authenticate(AuthenticationRequest request) {
         var user = repo.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + request.getEmail()));
+                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác"));
 
         boolean authenticated = passwordEncoder.matches(request.getMatKhau(), user.getMatKhau());
 
         if (!authenticated) {
-            throw new RuntimeException("Đăng nhập thất bại!");
+            throw new RuntimeException("Email hoặc mật khẩu không chính xác!");
         }
 
-        var token = generateToken(request.getEmail());
+        var token = generateToken(user);
 
         var response = AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .user(user)
                 .build();
 
         return ApiResponse.success(response);
     }
 
-    // Generate token
     public ApiResponse<NguoiDung> register(NguoiDung user) {
         // Kiểm tra email đã tồn tại chưa
         if (repo.findByEmail(user.getEmail()).isPresent()) {
